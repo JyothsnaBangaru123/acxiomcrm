@@ -1,0 +1,79 @@
+@model LoginDto
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h3 class="fw-bold mb-1">AcxiomCRM</h3>
+            <p class="text-muted small">Sign in to your enterprise account</p>
+        </div>
+
+        <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                    <input asp-for="Email" class="form-control" placeholder="name@acxiomcrm.com" autofocus />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label asp-for="Password" class="form-label mb-0"></label>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" asp-for="RememberMe" />
+                <label class="form-check-label small text-muted" asp-for="RememberMe">
+                    Keep me signed in on this device
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+            </button>
+
+            <div class="text-center text-muted small mb-4">
+                Don't have an account? <a asp-action="Register" class="text-primary fw-semibold text-decoration-none">Register</a>
+            </div>
+
+            <!-- Quick Demo Login Presets -->
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="fw-bold text-dark small mb-2 d-flex align-items-center gap-1">
+                    <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Evaluation Logins:
+                </div>
+                <div class="d-grid gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-dark text-start" onclick="fillCredentials('admin@acxiomcrm.com', 'Admin@12345!')">
+                        <span class="badge bg-danger me-1">Admin</span> admin@acxiomcrm.com
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark text-start" onclick="fillCredentials('manager@acxiomcrm.com', 'Manager@12345!')">
+                        <span class="badge bg-info text-dark me-1">Manager</span> manager@acxiomcrm.com
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark text-start" onclick="fillCredentials('sales@acxiomcrm.com', 'Sales@12345!')">
+                        <span class="badge bg-success me-1">Sales Rep</span> sales@acxiomcrm.com
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

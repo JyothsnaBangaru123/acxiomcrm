@@ -1,0 +1,173 @@
+@model IReadOnlyList<UserDto>
+@{
+    ViewData["Title"] = "User & Role Administration";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-dark mb-0">System Users & Roles</h2>
+        <p class="text-muted small mb-0">Manage system access, roles, account activation, and security policies</p>
+    </div>
+    <a asp-controller="Account" asp-action="Register" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill me-1"></i> Register New User
+    </a>
+</div>
+
+<div class="crm-card">
+    <div class="crm-card-body p-0">
+        <div class="table-responsive">
+            <table class="table crm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Lockout</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        @u.FullName.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <span class="fw-bold text-dark">@u.FullName</span>
+                                </div>
+                            </td>
+                            <td>@u.Email</td>
+                            <td>@(u.Department ?? "—")</td>
+                            <td>
+                                @switch (u.Role)
+                                {
+                                    case AppRoles.Admin:
+                                        <span class="badge bg-danger">Admin</span>
+                                        break;
+                                    case AppRoles.Manager:
+                                        <span class="badge bg-info text-dark">Manager</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-success">Sales Rep</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (u.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger"><i class="bi bi-slash-circle"></i> Deactivated</span>
+                                }
+                            </td>
+                            <td>
+                                @if (u.IsLockedOut)
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Locked</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Normal</span>
+                                }
+                            </td>
+                            <td>@u.CreatedDate.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <!-- Change Role Button & Dropdown -->
+                                    <div class="dropdown d-inline">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Role">
+                                            Role
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            @foreach (var role in AppRoles.AllRoles)
+                                            {
+                                                <li>
+                                                    <form asp-action="UpdateRole" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="UserId" value="@u.Id" />
+                                                        <input type="hidden" name="Role" value="@role" />
+                                                        <button type="submit" class="dropdown-item @(u.Role == role ? "active fw-bold" : "")">
+                                                            @role
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+
+                                    <!-- Reset Password Modal Trigger -->
+                                    <button type="button" class="btn btn-outline-warning text-dark" title="Reset Password" onclick="openResetPasswordModal('@u.Id', '@u.FullName')">
+                                        <i class="bi bi-key"></i>
+                                    </button>
+
+                                    <!-- Unlock Account if locked -->
+                                    @if (u.IsLockedOut)
+                                    {
+                                        <form asp-action="Unlock" asp-route-id="@u.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-success" title="Unlock Account">
+                                                <i class="bi bi-unlock"></i>
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <!-- Toggle Active / Deactivate -->
+                                    <form asp-action="ToggleStatus" asp-route-id="@u.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")" title="@(u.IsActive ? "Deactivate" : "Activate")" data-confirm="Are you sure you want to @(u.IsActive ? "deactivate" : "activate") user '@u.FullName'?">
+                                            <i class="bi @(u.IsActive ? "bi-power" : "bi-check-lg")"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ResetPassword" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-key-fill text-warning me-1"></i> Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="UserId" id="resetUserId" />
+                    <p class="text-muted small">Enter a new secure password for <strong id="resetUserName"></strong> (Min 8 characters, letters, digits, symbols).</p>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" name="NewPassword" class="form-control" required minlength="8" placeholder="••••••••" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openResetPasswordModal(id, name) {
+            document.getElementById('resetUserId').value = id;
+            document.getElementById('resetUserName').innerText = name;
+            new bootstrap.Modal(document.getElementById('resetModal')).show();
+        }
+    </script>
+}

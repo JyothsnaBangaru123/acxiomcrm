@@ -1,0 +1,222 @@
+@model CustomerDetailDto
+@{
+    ViewData["Title"] = $"{Model.CustomerName} - Profile";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="h4 fw-bold text-dark mb-0">@Model.CustomerName</h2>
+            <span class="badge bg-light text-dark border">@Model.CustomerCode</span>
+            @if (Model.Status == CustomerStatus.Active)
+            {
+                <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill"></i> Active</span>
+            }
+            else
+            {
+                <span class="badge-status badge-status-inactive"><i class="bi bi-slash-circle"></i> Inactive</span>
+            }
+        </div>
+        <p class="text-muted small mb-0">@(Model.CompanyName ?? "Individual Client") &bull; Account managed by <strong>@Model.OwnerName</strong></p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i> Edit Profile
+        </a>
+        <a asp-controller="Opportunities" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> New Opportunity
+        </a>
+        <a asp-controller="FollowUps" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-warning btn-sm text-dark">
+            <i class="bi bi-calendar-plus me-1"></i> Schedule Follow-Up
+        </a>
+        <a asp-controller="Activities" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-secondary btn-sm">
+            <i class="bi bi-activity me-1"></i> Log Activity
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Customer Profile & Contact Info -->
+    <div class="col-lg-4">
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-person-badge-fill text-primary"></i> Account Details</h3>
+            </div>
+            <div class="crm-card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <div class="text-muted small">Email</div>
+                        <div class="fw-semibold"><a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a></div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="text-muted small">Phone</div>
+                        <div class="fw-semibold">@Model.Phone</div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="text-muted small">Company</div>
+                        <div class="fw-semibold">@(Model.CompanyName ?? "—")</div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="text-muted small">Address</div>
+                        <div class="fw-semibold">@(Model.Address ?? "—")</div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="text-muted small">City / State</div>
+                        <div class="fw-semibold">@(Model.City ?? "—"), @(Model.State ?? "—")</div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="text-muted small">Account Owner</div>
+                        <div class="fw-semibold text-primary">@Model.OwnerName</div>
+                    </li>
+                    <li>
+                        <div class="text-muted small">Created Date</div>
+                        <div class="small">@Model.CreatedDate.ToString("MMMM dd, yyyy")</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Pipeline Stats -->
+        <div class="crm-card">
+            <div class="crm-card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Active Pipeline</span>
+                    <span class="fw-bold fs-5 text-success">$@Model.TotalPipelineAmount.ToString("N0")</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Total Opportunities</span>
+                    <span class="fw-bold">@Model.OpportunitiesCount</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Related Deals, Follow-ups, Activities -->
+    <div class="col-lg-8">
+        <!-- Related Opportunities -->
+        <div class="crm-card mb-4">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-briefcase-fill text-success"></i> Opportunities (@Model.Opportunities.Count)</h3>
+                <a asp-controller="Opportunities" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-sm btn-link text-decoration-none">+ Add</a>
+            </div>
+            <div class="crm-card-body p-0">
+                @if (Model.Opportunities.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table crm-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Deal Name</th>
+                                    <th>Amount</th>
+                                    <th>Stage</th>
+                                    <th>Probability</th>
+                                    <th>Expected Close</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var opp in Model.Opportunities)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Opportunities" asp-action="Details" asp-route-id="@opp.OpportunityId" class="fw-bold text-decoration-none">
+                                                @opp.OpportunityName
+                                            </a>
+                                        </td>
+                                        <td class="fw-bold text-success">$@opp.Amount.ToString("N0")</td>
+                                        <td><span class="badge bg-primary-subtle text-primary">@opp.Stage</span></td>
+                                        <td>@opp.Probability%</td>
+                                        <td>@opp.ExpectedCloseDate.ToString("MMM dd, yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center text-muted small">No opportunities linked to this customer yet.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Follow-Ups -->
+        <div class="crm-card mb-4">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-calendar-event-fill text-warning"></i> Follow-Ups (@Model.FollowUps.Count)</h3>
+                <a asp-controller="FollowUps" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-sm btn-link text-decoration-none">+ Schedule</a>
+            </div>
+            <div class="crm-card-body p-0">
+                @if (Model.FollowUps.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table crm-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var fu in Model.FollowUps)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@fu.FollowUpDate.ToString("MMM dd, yyyy")</td>
+                                        <td><span class="badge bg-light text-dark border">@fu.FollowUpType</span></td>
+                                        <td><span class="badge bg-info-subtle text-dark">@fu.Status</span></td>
+                                        <td>@fu.Remarks</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center text-muted small">No scheduled follow-ups.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Activity History -->
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-activity text-secondary"></i> Activity Log (@Model.Activities.Count)</h3>
+                <a asp-controller="Activities" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-sm btn-link text-decoration-none">+ Log</a>
+            </div>
+            <div class="crm-card-body p-0">
+                @if (Model.Activities.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table crm-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var act in Model.Activities)
+                                {
+                                    <tr>
+                                        <td>@act.ActivityDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td><span class="badge bg-secondary-subtle text-dark">@act.ActivityType</span></td>
+                                        <td class="fw-semibold">@act.Subject</td>
+                                        <td><span class="badge bg-success-subtle text-success">@act.Status</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center text-muted small">No activities logged yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

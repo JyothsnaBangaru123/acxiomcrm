@@ -1,0 +1,113 @@
+@model CreateOpportunityDto
+@{
+    ViewData["Title"] = "New Opportunity";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h2 class="crm-card-title"><i class="bi bi-briefcase-fill text-primary"></i> Create Opportunity</h2>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back to List</a>
+            </div>
+            <div class="crm-card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="LeadId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="OpportunityName" class="form-label"></label>
+                            <input asp-for="OpportunityName" class="form-control" placeholder="e.g. Enterprise License Expansion" autofocus />
+                            <span asp-validation-for="OpportunityName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CustomerId" class="form-label"></label>
+                            <select asp-for="CustomerId" asp-items="ViewBag.Customers" class="form-select">
+                                <option value="">-- Select Customer Account --</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Amount" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="Amount" class="form-control" type="number" step="0.01" placeholder="50000.00" />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Stage" class="form-label"></label>
+                            <select asp-for="Stage" class="form-select" id="stageSelect">
+                                @foreach (OpportunityStage s in Enum.GetValues<OpportunityStage>())
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Probability" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="Probability" class="form-control" type="number" min="0" max="100" id="probInput" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <span asp-validation-for="Probability" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ExpectedCloseDate" class="form-label"></label>
+                            <input asp-for="ExpectedCloseDate" class="form-control" type="date" min="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="ExpectedCloseDate" class="text-danger small"></span>
+                        </div>
+
+                        @if (ViewBag.AssignedUsers != null)
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="AssignedTo" class="form-label"></label>
+                                <select asp-for="AssignedTo" asp-items="ViewBag.AssignedUsers" class="form-select">
+                                    <option value="">-- Assign Sales Executive --</option>
+                                </select>
+                            </div>
+                        }
+
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Key decision makers, scope, terms..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i> Save Opportunity</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const stage = document.getElementById('stageSelect');
+        const prob = document.getElementById('probInput');
+        if (stage && prob) {
+            stage.addEventListener('change', () => {
+                switch (stage.value) {
+                    case 'Qualification': prob.value = 20; break;
+                    case 'Proposal': prob.value = 50; break;
+                    case 'Negotiation': prob.value = 80; break;
+                    case 'Won': prob.value = 100; break;
+                    case 'Lost': prob.value = 0; break;
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,159 @@
+@model PagedResult<AuditLogDto>
+@{
+    ViewData["Title"] = "Audit Log Trail";
+    var filter = ViewBag.Filter as AuditLogFilterDto ?? new AuditLogFilterDto();
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-dark mb-0">System Audit Trail</h2>
+        <p class="text-muted small mb-0">Append-only compliance log capturing user authentication, entity mutations, and security events</p>
+    </div>
+    <a asp-action="Export" asp-route-SearchTerm="@filter.SearchTerm" asp-route-Action="@filter.Action" asp-route-EntityName="@filter.EntityName" class="btn btn-outline-success">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+    </a>
+</div>
+
+<!-- Search & Filters -->
+<div class="crm-card mb-4">
+    <div class="crm-card-body p-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input type="text" name="SearchTerm" class="form-control" placeholder="Search user, action, details..." value="@filter.SearchTerm" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="Action" class="form-control form-control-sm" placeholder="Action (e.g. Login, Create)..." value="@filter.Action" />
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="EntityName" class="form-control form-control-sm" placeholder="Entity (e.g. Lead, User)..." value="@filter.EntityName" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary flex-grow-1"><i class="bi bi-filter"></i> Apply</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="crm-card">
+    <div class="crm-card-body p-0">
+        <div class="table-responsive">
+            <table class="table crm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Timestamp (UTC)</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Details / Changes</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Any())
+                    {
+                        @foreach (var log in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@log.CreatedDate.ToString("yyyy-MM-dd")</div>
+                                    <small class="text-muted">@log.CreatedDate.ToString("HH:mm:ss") UTC</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-person me-1"></i> @log.UserName
+                                    </span>
+                                </td>
+                                <td>
+                                    @switch (log.Action.ToLower())
+                                    {
+                                        case "login":
+                                            <span class="badge bg-success-subtle text-success">Login</span>
+                                            break;
+                                        case "failed login":
+                                        case "lockout":
+                                            <span class="badge bg-danger-subtle text-danger">@log.Action</span>
+                                            break;
+                                        case "create":
+                                            <span class="badge bg-primary-subtle text-primary">Create</span>
+                                            break;
+                                        case "update":
+                                            <span class="badge bg-info-subtle text-info">Update</span>
+                                            break;
+                                        case "delete":
+                                        case "deactivate":
+                                            <span class="badge bg-warning-subtle text-warning">@log.Action</span>
+                                            break;
+                                        case "leadconversion":
+                                            <span class="badge bg-purple-subtle text-purple" style="background: #f3e8ff; color: #6b21a8;">Conversion</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary-subtle text-dark">@log.Action</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark">@log.EntityName</span>
+                                    @if (!string.IsNullOrEmpty(log.RecordId))
+                                    {
+                                        <small class="text-muted ms-1">#@log.RecordId</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.OldValue))
+                                    {
+                                        <div class="small text-muted"><span class="fw-bold">Old:</span> @log.OldValue</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(log.NewValue))
+                                    {
+                                        <div class="small text-dark"><span class="fw-bold">New:</span> @log.NewValue</div>
+                                    }
+                                </td>
+                                <td><span class="text-muted small font-monospace">@log.IpAddress</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-journal-x fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                <div>No audit records match the current criteria.</div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="crm-card-footer p-3 d-flex justify-content-between align-items-center bg-white border-top">
+            <div class="text-muted small">
+                Showing @((Model.PageNumber - 1) * Model.PageSize + 1) to @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) of @Model.TotalCount logs
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-SearchTerm="@filter.SearchTerm" asp-route-Action="@filter.Action" asp-route-EntityName="@filter.EntityName">Previous</a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-PageNumber="@i" asp-route-SearchTerm="@filter.SearchTerm" asp-route-Action="@filter.Action" asp-route-EntityName="@filter.EntityName">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-SearchTerm="@filter.SearchTerm" asp-route-Action="@filter.Action" asp-route-EntityName="@filter.EntityName">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

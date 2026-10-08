@@ -1,0 +1,103 @@
+@model UpdateFollowUpDto
+@{
+    ViewData["Title"] = "Edit Follow-Up";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="crm-card">
+            <div class="crm-card-header">
+                <h2 class="crm-card-title"><i class="bi bi-pencil-square text-primary"></i> Edit Follow-Up</h2>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back to List</a>
+            </div>
+            <div class="crm-card-body">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="FollowUpId" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="CustomerId" class="form-label"></label>
+                            <select asp-for="CustomerId" asp-items="ViewBag.Customers" class="form-select">
+                                <option value="">-- Optional Customer --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="LeadId" class="form-label"></label>
+                            <select asp-for="LeadId" asp-items="ViewBag.Leads" class="form-select">
+                                <option value="">-- Optional Lead --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="OpportunityId" class="form-label"></label>
+                            <select asp-for="OpportunityId" asp-items="ViewBag.Opportunities" class="form-select">
+                                <option value="">-- Optional Deal --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="FollowUpDate" class="form-label"></label>
+                            <input asp-for="FollowUpDate" class="form-control" type="date" />
+                            <span asp-validation-for="FollowUpDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="FollowUpType" class="form-label"></label>
+                            <select asp-for="FollowUpType" class="form-select">
+                                @foreach (FollowUpType t in Enum.GetValues<FollowUpType>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Status" class="form-label"></label>
+                            <select asp-for="Status" class="form-select">
+                                @foreach (FollowUpStatus s in Enum.GetValues<FollowUpStatus>())
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Subject" class="form-label"></label>
+                            <input asp-for="Subject" class="form-control" />
+                            <span asp-validation-for="Subject" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Remarks" class="form-label"></label>
+                            <textarea asp-for="Remarks" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Remarks" class="text-danger small"></span>
+                        </div>
+
+                        @if (ViewBag.AssignedUsers != null)
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="AssignedTo" class="form-label"></label>
+                                <select asp-for="AssignedTo" asp-items="ViewBag.AssignedUsers" class="form-select">
+                                    <option value="">-- Assign Sales Executive --</option>
+                                </select>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i> Update Follow-Up</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

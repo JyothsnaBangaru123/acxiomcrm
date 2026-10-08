@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "Pipeline & Forecast Report";
+    var stageReport = ViewBag.StageReport as IReadOnlyList<PipelineStageReportItemDto> ?? new List<PipelineStageReportItemDto>();
+    var ownerReport = ViewBag.OwnerReport as IReadOnlyList<OwnerPipelineReportItemDto> ?? new List<OwnerPipelineReportItemDto>();
+    var start = ViewBag.StartDate as DateTime?;
+    var end = ViewBag.EndDate as DateTime?;
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-dark mb-0">Pipeline & Forecast Report</h2>
+        <p class="text-muted small mb-0">Stage distribution, probability weightings, and owner allocations</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportPipeline" asp-route-start="@start?.ToString("yyyy-MM-dd")" asp-route-end="@end?.ToString("yyyy-MM-dd")" class="btn btn-outline-success">
+            <i class="bi bi-download me-1"></i> Export CSV
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to Reports</a>
+    </div>
+</div>
+
+<!-- Date Filter Form -->
+<div class="crm-card mb-4">
+    <div class="crm-card-body p-3">
+        <form method="get" asp-action="Pipeline" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">From Date</label>
+                <input type="date" name="start" class="form-control form-control-sm" value="@start?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">To Date</label>
+                <input type="date" name="end" class="form-control form-control-sm" value="@end?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-sm btn-primary flex-grow-1"><i class="bi bi-filter"></i> Filter</button>
+                <a asp-action="Pipeline" class="btn btn-sm btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stage Breakdown Table -->
+<div class="crm-card mb-4">
+    <div class="crm-card-header">
+        <h3 class="crm-card-title"><i class="bi bi-funnel-fill text-primary"></i> Stage-wise Breakdown</h3>
+    </div>
+    <div class="crm-card-body p-0">
+        <div class="table-responsive">
+            <table class="table crm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Opportunities</th>
+                        <th>Stage Total Amount ($)</th>
+                        <th>Weighted Forecast ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in stageReport)
+                    {
+                        <tr>
+                            <td class="fw-bold">@s.StageName</td>
+                            <td>@s.OpportunityCount</td>
+                            <td class="fw-bold text-dark">$@s.TotalAmount.ToString("N2")</td>
+                            <td class="fw-bold text-primary">$@s.WeightedAmount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td>Total</td>
+                        <td>@stageReport.Sum(s => s.OpportunityCount)</td>
+                        <td>$@stageReport.Sum(s => s.TotalAmount).ToString("N2")</td>
+                        <td class="text-primary">$@stageReport.Sum(s => s.WeightedAmount).ToString("N2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Owner Breakdown Table -->
+<div class="crm-card">
+    <div class="crm-card-header">
+        <h3 class="crm-card-title"><i class="bi bi-people-fill text-primary"></i> Owner-wise Pipeline Distribution</h3>
+    </div>
+    <div class="crm-card-body p-0">
+        <div class="table-responsive">
+            <table class="table crm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Sales Executive</th>
+                        <th>Active Opportunities</th>
+                        <th>Active Pipeline Value</th>
+                        <th>Won Deals</th>
+                        <th>Won Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in ownerReport)
+                    {
+                        <tr>
+                            <td class="fw-bold">@o.OwnerName</td>
+                            <td>@o.ActiveOpportunitiesCount</td>
+                            <td class="fw-bold text-primary">$@o.TotalPipelineValue.ToString("N2")</td>
+                            <td>@o.WonCount</td>
+                            <td class="fw-bold text-success">$@o.WonAmount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model RegisterDto
+@{
+    ViewData["Title"] = "Register Account";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Create Account</h3>
+            <p class="text-muted small">Join AcxiomCRM Workspace</p>
+        </div>
+
+        <form asp-controller="Account" asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                    <input asp-for="FullName" class="form-control" placeholder="Full Name" autofocus />
+                </div>
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                    <input asp-for="Email" class="form-control" placeholder="user@acxiomcrm.com" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Department" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-building"></i></span>
+                    <input asp-for="Department" class="form-control" placeholder="e.g. Sales, Operations" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label"></label>
+                <select asp-for="Role" class="form-select">
+                    <option value="@AppRoles.SalesExecutive">Sales Executive</option>
+                    <option value="@AppRoles.Manager">Manager</option>
+                    <option value="@AppRoles.Admin">Administrator</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                    <input asp-for="Password" class="form-control" placeholder="Min 8 characters (a-z, A-Z, 0-9, special chars)" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-lock-fill"></i></span>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter password" />
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                <i class="bi bi-check2-circle me-1"></i> Register & Enter
+            </button>
+
+            <div class="text-center text-muted small">
+                Already registered? <a asp-action="Login" class="text-primary fw-semibold text-decoration-none">Sign In</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

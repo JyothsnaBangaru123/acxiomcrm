@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "CRM Reports & Analytics";
+    var stageReport = ViewBag.StageReport as IReadOnlyList<PipelineStageReportItemDto> ?? new List<PipelineStageReportItemDto>();
+    var ownerReport = ViewBag.OwnerReport as IReadOnlyList<OwnerPipelineReportItemDto> ?? new List<OwnerPipelineReportItemDto>();
+    var conversionReport = ViewBag.ConversionReport as ConversionRateReportDto ?? new ConversionRateReportDto();
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-dark mb-0">Management Reports</h2>
+        <p class="text-muted small mb-0">Executive insights into sales pipeline, conversion velocity, and team productivity</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Pipeline" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Pipeline Report</a>
+        <a asp-action="Conversion" class="btn btn-outline-success"><i class="bi bi-funnel me-1"></i> Conversion Report</a>
+        <a asp-action="Activities" class="btn btn-outline-secondary"><i class="bi bi-activity me-1"></i> Activity Report</a>
+    </div>
+</div>
+
+<!-- Report Summary Cards Grid -->
+<div class="row g-4 mb-4">
+    <!-- Pipeline Stage Distribution -->
+    <div class="col-lg-6">
+        <div class="crm-card h-100 mb-0">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-bar-chart-steps text-primary"></i> Pipeline by Stage</h3>
+                <a asp-action="Pipeline" class="btn btn-sm btn-link text-decoration-none">Full Report &rarr;</a>
+            </div>
+            <div class="crm-card-body p-0">
+                <div class="table-responsive">
+                    <table class="table crm-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Stage</th>
+                                <th>Deals</th>
+                                <th>Stage Value ($)</th>
+                                <th>Weighted Value ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stage in stageReport)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border">@stage.StageName</span></td>
+                                    <td>@stage.OpportunityCount</td>
+                                    <td class="fw-bold">$@stage.TotalAmount.ToString("N0")</td>
+                                    <td class="fw-semibold text-primary">$@stage.WeightedAmount.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion & Win Rate Overview -->
+    <div class="col-lg-6">
+        <div class="crm-card h-100 mb-0">
+            <div class="crm-card-header">
+                <h3 class="crm-card-title"><i class="bi bi-pie-chart text-success"></i> Conversion Funnel</h3>
+                <a asp-action="Conversion" class="btn btn-sm btn-link text-decoration-none">Full Report &rarr;</a>
+            </div>
+            <div class="crm-card-body">
+                <div class="row g-3 mb-3 text-center">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Lead Qualification Rate</div>
+                            <div class="fw-bold fs-4 text-primary">@conversionReport.QualificationRate%</div>
+                            <small class="text-muted">@conversionReport.QualifiedLeads of @conversionReport.TotalLeads leads</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="text-muted small">Customer Conversion Rate</div>
+                            <div class="fw-bold fs-4 text-success">@conversionReport.ConversionRate%</div>
+                            <small class="text-muted">@conversionReport.ConvertedLeads customer accounts created</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-success fw-bold">Total Closed Revenue</div>
+                        <small class="text-muted">Directly attributed to won deals</small>
+                    </div>
+                    <div class="fs-4 fw-bold text-success">$@conversionReport.TotalWonRevenue.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Representative Performance Summary -->
+<div class="crm-card">
+    <div class="crm-card-header">
+        <h3 class="crm-card-title"><i class="bi bi-people-fill text-primary"></i> Team Pipeline Distribution</h3>
+    </div>
+    <div class="crm-card-body p-0">
+        <div class="table-responsive">
+            <table class="table crm-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Sales Executive</th>
+                        <th>Active Opportunities</th>
+                        <th>Active Pipeline Value</th>
+                        <th>Closed Won Deals</th>
+                        <th>Total Won Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ownerReport.Any())
+                    {
+                        @foreach (var owner in ownerReport)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">
+                                    <i class="bi bi-person-circle me-1 text-muted"></i> @owner.OwnerName
+                                </td>
+                                <td>@owner.ActiveOpportunitiesCount</td>
+                                <td class="fw-bold text-primary">$@owner.TotalPipelineValue.ToString("N0")</td>
+                                <td><span class="badge bg-success-subtle text-success">@owner.WonCount Deals</span></td>
+                                <td class="fw-bold text-success">$@owner.WonAmount.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No sales rep data available in current scope.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

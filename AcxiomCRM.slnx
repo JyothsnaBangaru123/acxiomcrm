@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AcxiomCRM.Application/AcxiomCRM.Application.csproj" />
+  <Project Path="AcxiomCRM.Domain/AcxiomCRM.Domain.csproj" />
+  <Project Path="AcxiomCRM.Infrastructure/AcxiomCRM.Infrastructure.csproj" />
+  <Project Path="AcxiomCRM.Tests/AcxiomCRM.Tests.csproj" />
+  <Project Path="AcxiomCRM.Web/AcxiomCRM.Web.csproj" />
+</Solution>
