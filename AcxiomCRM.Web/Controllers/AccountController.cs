@@ -101,7 +101,7 @@ public class AccountController : BaseController
     [AllowAnonymous]
     public IActionResult Register()
     {
-        if (User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated == true && !User.IsInRole(AppRoles.Admin))
         {
             return RedirectToAction("Index", "Dashboard");
         }
@@ -145,7 +145,16 @@ public class AccountController : BaseController
         {
             await _userManager.AddToRoleAsync(user, roleToAssign);
 
-            await _auditService.LogAsync(user.Id, user.Email, "Create", "User", user.Id, null, $"User registered with role {roleToAssign}", ip);
+            var actorId = User.Identity?.IsAuthenticated == true ? CurrentUserContext.UserId : user.Id;
+            var actorEmail = User.Identity?.IsAuthenticated == true ? CurrentUserContext.Email : user.Email;
+
+            await _auditService.LogAsync(actorId, actorEmail, "Create", "User", user.Id, null, $"User '{user.FullName}' ({user.Email}) created with role {roleToAssign}", ip);
+
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole(AppRoles.Admin))
+            {
+                SetSuccessNotification($"User '{user.FullName}' created successfully with role '{roleToAssign}'.");
+                return RedirectToAction("Index", "Users");
+            }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
             SetSuccessNotification("Welcome to AcxiomCRM! Your account was registered successfully.");

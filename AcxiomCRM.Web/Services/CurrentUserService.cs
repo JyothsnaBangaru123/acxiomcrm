@@ -36,6 +36,7 @@ public class CurrentUserService : ICurrentUserService
         var user = httpContext.User;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         var userName = user.Identity.Name ?? user.FindFirstValue(ClaimTypes.Email) ?? "User";
+        var email = user.FindFirstValue(ClaimTypes.Email) ?? userName;
         var role = user.FindFirstValue(ClaimTypes.Role) ?? AppRoles.SalesExecutive;
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
 
@@ -43,6 +44,7 @@ public class CurrentUserService : ICurrentUserService
         {
             UserId = userId,
             UserName = userName,
+            Email = email,
             Role = role,
             IpAddress = ipAddress
         };

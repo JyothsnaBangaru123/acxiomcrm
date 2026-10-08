@@ -162,6 +162,17 @@ app.MapControllerRoute(
 
 app.MapControllers();
 
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("================================================================================");
+    Console.WriteLine("   🚀 ACXIOMCRM WEB APPLICATION IS RUNNING!");
+    Console.WriteLine("   👉 Web Portal:     http://localhost:5036");
+    Console.WriteLine("   👉 Swagger APIs:   http://localhost:5036/swagger");
+    Console.WriteLine("================================================================================");
+    Console.ResetColor();
+});
+
 app.Run();
 
 // Make the implicit Program class public so test projects can access WebApplicationFactory<Program>
